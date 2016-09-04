@@ -19,10 +19,14 @@ func mindSeenList() {
 	for {
 		select {
 		case <-t:
-			if s, err := getSeenList(); err != nil {
-				log.Println("Error fetching seen list:", err.Error())
-			} else {
-				seenList = s
+			for {
+				if s, err := getSeenList(); err != nil {
+					log.Println("Error fetching seen list:", err.Error())
+					time.Sleep(5 * time.Second)
+				} else {
+					seenList = s
+					break
+				}
 			}
 		}
 	}
