@@ -1,55 +1,21 @@
 package main
 
-import (
-	"encoding/json"
-	"net/http"
-	"time"
+import "github.com/apokalyptik/cfg"
 
-	"github.com/codegangsta/negroni"
-	"github.com/gorilla/mux"
-	"github.com/phyber/negroni-gzip/gzip"
-	"github.com/rs/cors"
-)
+var sqlURI = "user:password@tcp(127.0.0.1:3306)/fofgaming"
+var listenOn = "0.0.0.0:8875"
 
-type filteredUser struct {
-	User privateUser
-	Seen time.Time
-}
+func init() {
+	sql := cfg.New("db")
+	sql.StringVar(&sqlURI, "uri", sqlURI, "MySQL Connection URI")
 
-type filteredUsers map[string]filteredUser
-
-func filteredUserList() filteredUsers {
-	var u = userList
-	var s = seenList
-	var rval = filteredUsers{}
-	var maxAge = time.Now().Add(0 - (30 * 24 * time.Hour))
-	for id, t := range s {
-		if id == "USLACKBOT" {
-			continue
-		}
-		if t.Before(maxAge) {
-			continue
-		}
-		rval[id] = filteredUser{
-			User: u[id],
-			Seen: t,
-		}
-	}
-	return rval
+	api := cfg.New("api")
+	api.StringVar(&listenOn, "listen", listenOn, "Listen for api connections on")
 }
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/v1/users.json", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(filteredUserList())
-	})
+	cfg.Parse()
 	go mindSeenList()
 	go mindPrivateUserList()
-	n := negroni.New()
-	n.Use(cors.New(cors.Options{AllowedOrigins: []string{"*"}}))
-	n.Use(negroni.NewRecovery())
-	n.Use(negroni.NewLogger())
-	n.Use(gzip.Gzip(gzip.DefaultCompression))
-	n.UseHandler(r)
-	n.Run("0.0.0.0:8875")
+	mindHTTP()
 }
