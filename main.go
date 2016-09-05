@@ -2,7 +2,7 @@ package main
 
 import "github.com/apokalyptik/cfg"
 
-var sqlURI = "user:password@tcp(127.0.0.1:3306)/fofgaming"
+var sqlURI = "user:password@tcp(127.0.0.1:3306)/fofgaming?charset=utf8mb4,utf8&collation=utf8mb4_unicode_ci"
 var listenOn = "0.0.0.0:8875"
 
 func init() {
@@ -15,6 +15,7 @@ func init() {
 
 func main() {
 	cfg.Parse()
+	mindSQL()
 	go mindSeenList()
 	go mindPrivateUserList()
 	mindHTTP()

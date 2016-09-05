@@ -17,6 +17,7 @@ type privateUserList struct {
 		UltraRestricted bool   `json:"is_ultra_restricted"`
 		ID              string `json:"id"`
 		Name            string `json:"name"`
+		TimeZone        string `json:"tz"`
 		Profile         struct {
 			GamerTag string `json:"first_name"`
 		} `json:"profile"`
@@ -32,22 +33,49 @@ type privateUser struct {
 type privateUsers map[string]privateUser
 
 func mindPrivateUserList() {
+	go updateUserCacheV2()
 	if u, err := getPrivateUserList(); err != nil {
 		log.Fatal("Error fetching initial user list!", err.Error())
 	} else {
 		userList = u
+		updateUserCacheV2()
 	}
 	t := time.Tick(10 * time.Minute)
 	for {
 		select {
 		case <-t:
-			if u, err := getPrivateUserList(); err != nil {
-				log.Println("Error fetching user list:", err.Error())
-			} else {
-				userList = u
+			for {
+				log.Println("Updating user list")
+				if u, err := getPrivateUserList(); err != nil {
+					log.Println("Error fetching user list:", err.Error())
+					time.Sleep(30)
+				} else {
+					userList = u
+					updateUserCacheV2()
+					break
+				}
 			}
 		}
 	}
+}
+
+func updateUserCacheV2() {
+	log.Println("User list updated, updating MySQL User Cache (v2)")
+	rows, err := db.getAllUsers.Query()
+	if err != nil {
+		log.Println("Error fetching all users", err)
+		return
+	}
+	for rows.Next() {
+		var user = new(user)
+		if err := user.fromRows(rows); err != nil {
+			log.Println("Error scanning user", err)
+			continue
+		}
+		userCache[user.SlackID] = user
+	}
+	rows.Close()
+	return
 }
 
 func getPrivateUserList() (privateUsers, error) {
@@ -63,6 +91,7 @@ func getPrivateUserList() (privateUsers, error) {
 		return rval, err
 	}
 	for _, user := range raw.Members {
+		go db.maybeInsert(user.ID, user.Name, user.Profile.GamerTag, user.TimeZone)
 		if user.Bot {
 			continue
 		}
