@@ -19,15 +19,21 @@ type privateUserList struct {
 		Name            string `json:"name"`
 		TimeZone        string `json:"tz"`
 		Profile         struct {
-			GamerTag string `json:"first_name"`
+			GamerTag    string `json:"first_name"`
+			DisplayName string `json:"real_name_normalized"`
+			Image       string `json:"image_original"`
+			Thumb       string `json:"image_24"`
 		} `json:"profile"`
 	} `json:"members"`
 }
 
 type privateUser struct {
-	ID       string
-	Name     string
-	GamerTag string
+	ID          string
+	Name        string
+	GamerTag    string
+	DisplayName string
+	Image       string
+	Thumb       string
 }
 
 type privateUsers map[string]privateUser
@@ -105,9 +111,12 @@ func getPrivateUserList() (privateUsers, error) {
 			continue
 		}
 		rval[user.ID] = privateUser{
-			ID:       user.ID,
-			Name:     user.Name,
-			GamerTag: user.Profile.GamerTag,
+			ID:          user.ID,
+			Name:        user.Name,
+			GamerTag:    user.Profile.GamerTag,
+			DisplayName: user.Profile.DisplayName,
+			Image:       user.Profile.Image,
+			Thumb:       user.Profile.Thumb,
 		}
 	}
 	return rval, nil
