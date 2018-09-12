@@ -9,12 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	nocache "github.com/rabeesh/negroni-nocache"
 	"github.com/rs/cors"
-	"github.com/uber-go/zap"
+	"go.uber.org/zap"
 )
 
 var router = mux.NewRouter()
 var mwh = negroni.New()
-var logger = zap.New(zap.NewJSONEncoder()).With(zap.String("module", "user-registry"))
+var logger *zap.Logger
 
 var cmw = cors.New(cors.Options{
 	AllowedOrigins: []string{
@@ -27,6 +27,11 @@ var cmw = cors.New(cors.Options{
 	},
 	AllowCredentials: true,
 })
+
+func init() {
+	l, _ := zap.NewProduction()
+	logger = l.With(zap.String("module", "user-registry"))
+}
 
 func mw(fn func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	c := cors.New(cors.Options{
