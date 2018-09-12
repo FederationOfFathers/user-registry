@@ -19,10 +19,13 @@ type privateUserList struct {
 		Name            string `json:"name"`
 		TimeZone        string `json:"tz"`
 		Profile         struct {
-			GamerTag    string `json:"first_name"`
-			DisplayName string `json:"real_name_normalized"`
-			Image       string `json:"image_original"`
-			Thumb       string `json:"image_24"`
+			GamerTag              string `json:"first_name"`
+			RealName              string `json:"real_name"`
+			RealNameNormalized    string `json:"real_name_normalized"`
+			DisplayName           string `json:"display_name"`
+			DisplayNameNormalized string `json:"display_name_normalized"`
+			Image                 string `json:"image_original"`
+			Thumb                 string `json:"image_24"`
 		} `json:"profile"`
 	} `json:"members"`
 }
@@ -97,7 +100,14 @@ func getPrivateUserList() (privateUsers, error) {
 		return rval, err
 	}
 	for _, user := range raw.Members {
-		go db.maybeInsert(user.ID, user.Name, user.Profile.GamerTag, user.TimeZone)
+
+		// use display name, or default to 'real name'
+		name := user.Profile.DisplayName
+		if name == "" {
+			name = user.Profile.RealName
+		}
+
+		go db.maybeInsert(user.ID, name, user.Profile.GamerTag, user.TimeZone)
 		if user.Bot {
 			continue
 		}
@@ -112,9 +122,9 @@ func getPrivateUserList() (privateUsers, error) {
 		}
 		rval[user.ID] = privateUser{
 			ID:          user.ID,
-			Name:        user.Name,
+			Name:        name,
 			GamerTag:    user.Profile.GamerTag,
-			DisplayName: user.Profile.DisplayName,
+			DisplayName: name,
 			Image:       user.Profile.Image,
 			Thumb:       user.Profile.Thumb,
 		}
