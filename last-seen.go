@@ -1,12 +1,6 @@
 package main
 
-import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"time"
-)
-
+/*
 var seenList = map[string]time.Time{}
 
 func mindSeenList() {
@@ -43,3 +37,4 @@ func getSeenList() (map[string]time.Time, error) {
 	err = dec.Decode(&rval)
 	return rval, err
 }
+*/
