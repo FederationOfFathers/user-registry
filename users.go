@@ -41,7 +41,6 @@ func maybeInsertUser(discordID string, nickname string) {
 		} else {
 			log.Println("updated nickname", id, nickname)
 		}
-		// update database
 		return
 	}
 	_, err := insertUser.Exec(discordID, nickname)
