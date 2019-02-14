@@ -20,6 +20,7 @@ func main() {
 	cfg.Parse()
 	consul.Must()
 	mindSQL()
+	go loadUsersFromDatabase()
 	go mindDiscord()
 	mindHTTP()
 }

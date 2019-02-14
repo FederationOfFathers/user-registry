@@ -50,7 +50,11 @@ func mindDiscord() {
 			if v.User.Bot {
 				continue
 			}
-			maybeInsertUser(v.User.ID, v.Nick)
+			nickname := v.User.Username
+			if v.Nick != "" {
+				nickname = v.Nick
+			}
+			maybeInsertUser(v.User.ID, nickname)
 		}
 		time.Sleep(300 * time.Second)
 	}
