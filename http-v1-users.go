@@ -13,6 +13,8 @@ func init() {
 			Seen time.Time
 		}{}
 		var maxAge = time.Now().Add(0 - (30 * 24 * time.Hour))
+		privateUsersLock.Lock()
+		defer privateUsersLock.Unlock()
 		for id, user := range userList {
 			t := time.Unix(user.Seen, 0)
 			if t.Before(maxAge) {
