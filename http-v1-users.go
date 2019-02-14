@@ -8,17 +8,15 @@ import (
 
 func init() {
 	router.HandleFunc("/v1/users.json", func(w http.ResponseWriter, r *http.Request) {
-		var u = userList
-		var s = seenList
 		var rval = map[string]struct {
 			User privateUser
 			Seen time.Time
 		}{}
 		var maxAge = time.Now().Add(0 - (30 * 24 * time.Hour))
-		for id, t := range s {
-			if id == "USLACKBOT" {
-				continue
-			}
+		privateUsersLock.Lock()
+		defer privateUsersLock.Unlock()
+		for id, user := range userList {
+			t := time.Unix(user.Seen, 0)
 			if t.Before(maxAge) {
 				continue
 			}
@@ -26,7 +24,7 @@ func init() {
 				User privateUser
 				Seen time.Time
 			}{
-				User: u[id],
+				User: *user,
 				Seen: t,
 			}
 		}
