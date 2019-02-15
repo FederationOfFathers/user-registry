@@ -15,6 +15,8 @@ type user struct {
 	Seen          time.Time
 	TZ            string
 	DiscordID     string
+	Image         string
+	Thumb         string
 }
 
 func (u *user) fromRows(row *sql.Rows) error {
@@ -26,6 +28,8 @@ func (u *user) fromRows(row *sql.Rows) error {
 		&u.Name,
 		&u.TZ,
 		&u.DiscordID,
+		&u.Image,
+		&u.Thumb,
 	)
 	u.Seen = time.Unix(u.SeenTimestamp, 0)
 	return err
@@ -40,6 +44,8 @@ func (u *user) fromRow(row *sql.Row) error {
 		&u.Name,
 		&u.TZ,
 		&u.DiscordID,
+		&u.Image,
+		&u.Thumb,
 	)
 	u.Seen = time.Unix(u.SeenTimestamp, 0)
 	return err
@@ -52,8 +58,8 @@ func (u *user) privateUser() *privateUser {
 		u.Name,
 		u.XBL,
 		u.Name,
-		"",
-		"",
+		u.Image,
+		u.Thumb,
 		u.SeenTimestamp,
 	}
 }

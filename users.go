@@ -23,23 +23,41 @@ type privateUser struct {
 
 type privateUsers map[string]*privateUser
 
-func maybeInsertUser(discordID string, nickname string) {
+func maybeInsertUser(discordID, nickname, image, thumb string) {
 	privateUsersLock.Lock()
 	defer privateUsersLock.Unlock()
 	for id, u := range userList {
 		if u.DiscordID != discordID {
 			continue
 		}
-		if u.Name == nickname || u.DisplayName == nickname {
-			return
+		if u.Name != nickname || u.DisplayName != nickname {
+			userList[id].DisplayName = nickname
+			userList[id].Name = nickname
+			_, err := updateName.Exec(nickname, id)
+			if err != nil {
+				log.Println("error updating nickname", err.Error(), id, nickname)
+			} else {
+				log.Println("updated nickname", id, nickname)
+			}
 		}
-		userList[id].DisplayName = nickname
-		userList[id].Name = nickname
-		_, err := updateName.Exec(nickname, id)
-		if err != nil {
-			log.Println("error updating nickname", err.Error(), id, nickname)
-		} else {
-			log.Println("updated nickname", id, nickname)
+		if u.Thumb != thumb {
+			userList[id].Thumb = thumb
+			_, err := insertUserMeta.Exec(id, "thumb", thumb)
+			if err != nil {
+				log.Println("error updating nickname", err.Error(), id, thumb)
+			} else {
+				log.Println("updated nickname", id, thumb)
+			}
+
+		}
+		if u.Image != image {
+			userList[id].Image = image
+			_, err := insertUserMeta.Exec(id, "image", image)
+			if err != nil {
+				log.Println("error updating image", err.Error(), id, image)
+			} else {
+				log.Println("updated image", id, image)
+			}
 		}
 		return
 	}
