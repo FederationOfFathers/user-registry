@@ -107,21 +107,23 @@ func maybeUpdateSeen(discordID string) {
 
 func loadUsersFromDatabase() {
 	for {
-		if rows, err := getAllUsers.Query(); err == nil {
-			privateUsersLock.Lock()
-			defer privateUsersLock.Unlock()
-			defer rows.Close()
-			for rows.Next() {
-				u := new(user)
-				if err := u.fromRows(rows); err != nil {
-					log.Printf("Error loading user from database: %s", err.Error())
-					continue
+		go func(){
+			if rows, err := getAllUsers.Query(); err == nil {
+				privateUsersLock.Lock()
+				defer privateUsersLock.Unlock()
+				defer rows.Close()
+				for rows.Next() {
+					u := new(user)
+					if err := u.fromRows(rows); err != nil {
+						log.Printf("Error loading user from database: %s", err.Error())
+						continue
+					}
+					p := u.privateUser()
+					userList[p.ID] = p
 				}
-				p := u.privateUser()
-				userList[p.ID] = p
+				return
 			}
-			return
-		}
-		time.Sleep(5 * time.Second)
+		}()
+		time.Sleep(5 * time.Second) // should probably use a tick/chan?
 	}
 }
