@@ -38,15 +38,38 @@ func mindDiscord() {
 		panic(err)
 	}
 
-	time.Sleep(5)
+	time.Sleep(5 * time.Second)
+
+	// main loop, runs every 300s
 	for {
-		guild, err := discord.Guild(guildID)
-		if err != nil {
-			panic(err)
+
+		// get the paginated list of guild members
+		members := []*discordgo.Member{}
+		var after string
+		for {
+			ms, err := discord.GuildMembers(guildID, after, 1000)
+			if err != nil {
+				panic(err)
+			}
+
+			// if we have no members, then there are no more
+			if len(ms) == 0 {
+				break
+			}
+
+			members = append(members, ms...)
+
+			// if we have 1000, then we may have more to retrieve, so update the after value
+			// but if we have <1000, then this is the last page
+			if len(ms) == 1000 {
+				lastmember := ms[len(ms)-1]
+				after = lastmember.User.ID
+			} else {
+				break
+			}
 		}
 
-		m := guild.Members
-		for _, v := range m {
+		for _, v := range members {
 			if v.User.Bot {
 				continue
 			}
