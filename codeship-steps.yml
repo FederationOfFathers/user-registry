@@ -1,0 +1,17 @@
+- name: "build"
+  service: app
+  command: echo "build complete"
+- service: app
+  tag: ^(master|dev)
+  type: push
+  image_name: quay.io/fofgaming/user-registry
+  image_tag: "{{.Branch}}"
+  registry: quay.io
+  encrypted_dockercfg_path: dockercfg.encrypted
+- service: app
+  tag: "master"
+  type: push
+  image_name: quay.io/fofgaming/user-registry
+  image_tag: latest
+  registry: quay.io
+  encrypted_dockercfg_path: dockercfg.encrypted
